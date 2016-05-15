@@ -1,0 +1,14 @@
+package: github.com/monder/goofys-docker
+import:
+- package: github.com/docker/go-plugins-helpers
+  subpackages:
+  - volume
+- package: github.com/kahing/goofys
+- package: github.com/docker/docker
+  version: 1.10.3
+  subpackages:
+  - volume
+- package: github.com/hanwen/go-fuse
+  subpackages:
+  - fuse
+- package: github.com/jacobsa/fuse

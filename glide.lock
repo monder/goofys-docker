@@ -1,0 +1,106 @@
+hash: b16b16b0b8bfb826fa86ad49fff52fd23d7951f3e821dc73211c45a9cf750352
+updated: 2016-05-15T09:00:21.937722904Z
+imports:
+- name: github.com/aws/aws-sdk-go
+  version: 7bad22e9cff8295edef29844b4daa55ecfb057b9
+  subpackages:
+  - aws
+  - aws/credentials
+  - aws/awserr
+  - aws/corehandlers
+  - aws/request
+  - aws/session
+  - service/s3
+  - aws/awsutil
+  - aws/client/metadata
+  - aws/client
+  - aws/defaults
+  - private/endpoints
+  - private/protocol
+  - private/protocol/restxml
+  - private/signer/v4
+  - private/waiter
+  - aws/credentials/ec2rolecreds
+  - aws/ec2metadata
+  - private/protocol/query
+  - private/protocol/rest
+  - private/protocol/xml/xmlutil
+  - private/protocol/query/queryutil
+- name: github.com/codegangsta/cli
+  version: 7f0ca9a34958d6702ac8f38530d19001fa5b1560
+- name: github.com/coreos/go-systemd
+  version: 8aa4c5cfbebc9ae1c3ce10df0dbf75658ae574ef
+  subpackages:
+  - activation
+  - util
+- name: github.com/docker/distribution
+  version: 4a915d6efdea23f437cb4144211aaf2faed27774
+  subpackages:
+  - registry/api/errcode
+- name: github.com/docker/docker
+  version: 20f81dde9bd97c86b2d0e33bbbf1388018611929
+  subpackages:
+  - volume
+  - errors
+  - pkg/system
+- name: github.com/docker/go-connections
+  version: 5b7154ba2efe13ff86ae8830a9e7cb120b080d6e
+  subpackages:
+  - sockets
+- name: github.com/docker/go-plugins-helpers
+  version: 726bdcf4333dc9bd02860d7397a4ab4797864ea5
+  subpackages:
+  - volume
+  - sdk
+- name: github.com/docker/go-units
+  version: 5d2041e26a699eaca682e2ea41c8f891e1060444
+- name: github.com/go-ini/ini
+  version: 12f418cc7edc5a618a51407b7ac1f1f512139df3
+- name: github.com/hanwen/go-fuse
+  version: ed841342e5daf4711f24106b93c1035864a8914b
+  subpackages:
+  - fuse
+- name: github.com/jacobsa/fuse
+  version: 652a72aae2c59321ae6ed05efac92c97210775d7
+  subpackages:
+  - fuseutil
+  - fuseops
+  - internal/buffer
+  - internal/freelist
+  - internal/fusekernel
+- name: github.com/jmespath/go-jmespath
+  version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
+- name: github.com/kahing/goofys
+  version: bf6e5f8c2c25c9a35753b44ac6786f788da6bfb7
+  subpackages:
+  - internal
+- name: github.com/kardianos/osext
+  version: 29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc
+- name: github.com/Microsoft/go-winio
+  version: 2255376ea2c82956af54f1eb5a56340a0af29111
+- name: github.com/opencontainers/runc
+  version: c6a791bef906b0dfdf81e85b840bec475b8ec75e
+  subpackages:
+  - libcontainer/user
+- name: github.com/sevlyar/go-daemon
+  version: 3bf5e993af87194518e81cf9a81c1c53190a8911
+- name: github.com/shirou/gopsutil
+  version: bae75faa5ad1212d3e80f11f5e9cd147c6be9198
+  subpackages:
+  - mem
+  - internal/common
+- name: github.com/Sirupsen/logrus
+  version: cd7d1bbe41066b6c1f19780f895901052150a575
+  subpackages:
+  - hooks/syslog
+- name: golang.org/x/net
+  version: ef00b378c73f107bf44d5c9b69875255ce89b79a
+  subpackages:
+  - context
+  - proxy
+- name: golang.org/x/sys
+  version: 33267e036fd93fcd26ea95b7bdaf2d8306cb743c
+  subpackages:
+  - unix
+  - windows
+devImports: []
