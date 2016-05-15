@@ -7,6 +7,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jacobsa/fuse/fuseutil"
@@ -36,6 +37,7 @@ func newS3Driver(root string) s3Driver {
 }
 
 func (d s3Driver) Create(r volume.Request) volume.Response {
+	// TODO volume already exists
 	return volume.Response{}
 }
 func (d s3Driver) Get(r volume.Request) volume.Response {
@@ -48,36 +50,40 @@ func (d s3Driver) List(r volume.Request) volume.Response {
 func (d s3Driver) Remove(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	m := d.mountpoint(r.Name)
+	bucket := strings.SplitN(r.Name, "/", 2)[0]
 
-	if s, ok := d.buckets[m]; ok {
+	if s, ok := d.buckets[bucket]; ok {
 		if s.connections <= 1 {
-			delete(d.buckets, m)
+			delete(d.buckets, bucket)
 		}
 	}
 	return volume.Response{}
 }
 
 func (d s3Driver) Path(r volume.Request) volume.Response {
-	return volume.Response{Mountpoint: d.mountpoint(r.Name)}
+	return volume.Response{
+		Mountpoint: d.mountpoint(r.Name),
+	}
 }
 
 func (d s3Driver) Mount(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	m := d.mountpoint(r.Name)
-	log.Printf("Mounting volume %s on %s\n", r.Name, m)
 
-	s, ok := d.buckets[m]
+	bucket := strings.SplitN(r.Name, "/", 2)[0]
+
+	log.Printf("Mounting volume %s on %s\n", r.Name, d.mountpoint(bucket))
+
+	s, ok := d.buckets[bucket]
 	if ok && s.connections > 0 {
 		s.connections++
-		return volume.Response{Mountpoint: m}
+		return volume.Response{Mountpoint: d.mountpoint(r.Name)}
 	}
 
-	fi, err := os.Lstat(m)
+	fi, err := os.Lstat(d.mountpoint(bucket))
 
 	if os.IsNotExist(err) {
-		if err := os.MkdirAll(m, 0755); err != nil {
+		if err := os.MkdirAll(d.mountpoint(bucket), 0755); err != nil {
 			return volume.Response{Err: err.Error()}
 		}
 	} else if err != nil {
@@ -85,32 +91,36 @@ func (d s3Driver) Mount(r volume.Request) volume.Response {
 	}
 
 	if fi != nil && !fi.IsDir() {
-		return volume.Response{Err: fmt.Sprintf("%v already exist and it's not a directory", m)}
+		return volume.Response{Err: fmt.Sprintf("%v already exist and it's not a directory", d.mountpoint(bucket))}
 	}
 
-	fs, err := d.mountBucket(m, r.Name)
+	fs, err := d.mountBucket(d.mountpoint(bucket), bucket)
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
 
-	d.buckets[m] = &s3Bucket{fs: fs, connections: 1}
+	d.buckets[bucket] = &s3Bucket{fs: fs, connections: 1}
 
-	return volume.Response{Mountpoint: m}
+	return volume.Response{Mountpoint: d.mountpoint(r.Name)}
 }
 
 func (d s3Driver) Unmount(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
-	m := d.mountpoint(r.Name)
-	log.Printf("Unmounting volume %s from %s\n", r.Name, m)
 
-	if s, ok := d.buckets[m]; ok {
+	bucket := strings.SplitN(r.Name, "/", 2)[0]
+
+	log.Printf("Unmounting volume %s from %s\n", r.Name, d.mountpoint(bucket))
+
+	if s, ok := d.buckets[bucket]; ok {
 		if s.connections == 1 {
-			fuse.Unmount(s.fs.Dir())
+			mountpoint := d.mountpoint(bucket)
+			fuse.Unmount(mountpoint)
+			os.Remove(mountpoint)
 		}
 		s.connections--
 	} else {
-		return volume.Response{Err: fmt.Sprintf("Unable to find volume mounted on %s", m)}
+		return volume.Response{Err: fmt.Sprintf("Unable to find volume mounted on %s", d.mountpoint(bucket))}
 	}
 
 	return volume.Response{}
@@ -121,6 +131,7 @@ func (d *s3Driver) mountpoint(name string) string {
 }
 
 func (d *s3Driver) mountBucket(mountpoint string, name string) (*fuse.MountedFileSystem, error) {
+	// TODO check if already mounted
 	if err := os.MkdirAll(filepath.Dir(mountpoint), 0755); err != nil {
 		return nil, err
 	}
@@ -133,7 +144,7 @@ func (d *s3Driver) mountBucket(mountpoint string, name string) (*fuse.MountedFil
 		name,
 		&aws.Config{
 			S3ForcePathStyle: aws.Bool(true),
-			Region:           aws.String("eu-west-1"),
+			Region:           aws.String("eu-west-1"), //TODO
 		},
 		flags,
 	)
