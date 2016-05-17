@@ -8,7 +8,4 @@ import:
   version: 1.10.3
   subpackages:
   - volume
-- package: github.com/hanwen/go-fuse
-  subpackages:
-  - fuse
 - package: github.com/jacobsa/fuse
