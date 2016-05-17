@@ -164,13 +164,20 @@ func (d *s3Driver) mountBucket(name string, volumeName string) error {
 
 	awsConfig := &aws.Config{
 		S3ForcePathStyle: aws.Bool(true),
+		Region:           aws.String("eu-west-1"),
 	}
+	goofysFlags := &g.FlagStorage{
+		StorageClass: "STANDARD",
+	}
+
 	if region, ok := d.volumes[volumeName]["region"]; ok {
 		awsConfig.Region = aws.String(region)
-	} else {
-		awsConfig.Region = aws.String("eu-west-1")
 	}
-	goofys := g.NewGoofys(name, awsConfig, &g.FlagStorage{})
+	if storageClass, ok := d.volumes[volumeName]["storage-class"]; ok {
+		goofysFlags.StorageClass = storageClass
+	}
+
+	goofys := g.NewGoofys(name, awsConfig, goofysFlags)
 	if goofys == nil {
 		err := fmt.Errorf("Goofys: initialization failed")
 		return err
