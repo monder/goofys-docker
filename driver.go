@@ -21,7 +21,7 @@ import (
 type s3Driver struct {
 	root        string
 	connections map[string]int
-	volumes     map[string]bool
+	volumes     map[string]map[string]string
 	m           *sync.Mutex
 }
 
@@ -29,20 +29,21 @@ func newS3Driver(root string) s3Driver {
 	return s3Driver{
 		root:        root,
 		connections: map[string]int{},
-		volumes:     map[string]bool{},
+		volumes:     map[string]map[string]string{},
 		m:           &sync.Mutex{},
 	}
 }
 
 func (d s3Driver) Create(r volume.Request) volume.Response {
-	if _, exists := d.volumes[r.Name]; exists {
-		return volume.Response{Err: "Volume already exists"}
-	}
-	d.volumes[r.Name] = true
+	d.m.Lock()
+	defer d.m.Unlock()
+	d.volumes[r.Name] = r.Options
 	return volume.Response{}
 }
 
 func (d s3Driver) Get(r volume.Request) volume.Response {
+	d.m.Lock()
+	defer d.m.Unlock()
 	if _, exists := d.volumes[r.Name]; exists {
 		return volume.Response{
 			Volume: &volume.Volume{
@@ -55,6 +56,8 @@ func (d s3Driver) Get(r volume.Request) volume.Response {
 }
 
 func (d s3Driver) List(r volume.Request) volume.Response {
+	d.m.Lock()
+	defer d.m.Unlock()
 	var volumes []*volume.Volume
 	for k := range d.volumes {
 		volumes = append(volumes, &volume.Volume{
@@ -121,7 +124,7 @@ func (d s3Driver) Mount(r volume.Request) volume.Response {
 		return volume.Response{Err: fmt.Sprintf("%v already exist and it's not a directory", d.mountpoint(bucket))}
 	}
 
-	err = d.mountBucket(d.mountpoint(bucket), bucket)
+	err = d.mountBucket(bucket, r.Name)
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
@@ -157,20 +160,17 @@ func (d *s3Driver) mountpoint(name string) string {
 	return filepath.Join(d.root, name)
 }
 
-func (d *s3Driver) mountBucket(mountpoint string, name string) error {
-	// TODO check if already mounted
+func (d *s3Driver) mountBucket(name string, volumeName string) error {
 
-	goofys := g.NewGoofys(
-		name,
-		&aws.Config{
-			S3ForcePathStyle: aws.Bool(true),
-			Region:           aws.String("eu-west-1"), //TODO
-		},
-		&g.FlagStorage{
-		//Uid: 500,
-		//Gid: 500,
-		},
-	)
+	awsConfig := &aws.Config{
+		S3ForcePathStyle: aws.Bool(true),
+	}
+	if region, ok := d.volumes[volumeName]["region"]; ok {
+		awsConfig.Region = aws.String(region)
+	} else {
+		awsConfig.Region = aws.String("eu-west-1")
+	}
+	goofys := g.NewGoofys(name, awsConfig, &g.FlagStorage{})
 	if goofys == nil {
 		err := fmt.Errorf("Goofys: initialization failed")
 		return err
@@ -183,7 +183,7 @@ func (d *s3Driver) mountBucket(mountpoint string, name string) error {
 		DisableWritebackCaching: true,
 	}
 
-	_, err := fuse.Mount(mountpoint, server, mountCfg)
+	_, err := fuse.Mount(d.mountpoint(name), server, mountCfg)
 	if err != nil {
 		err = fmt.Errorf("Mount: %v", err)
 		return err
