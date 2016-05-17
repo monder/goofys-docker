@@ -111,9 +111,7 @@ func (d s3Driver) Mount(r volume.Request) volume.Response {
 		}
 	} else if err != nil {
 		if e, ok := err.(*os.PathError); ok && e.Err == syscall.ENOTCONN {
-			// Crashed previously? Remount
-			log.Println(e.Err)
-			log.Println(e.Err == syscall.ENOTCONN)
+			// Crashed previously? Unmount
 			fuse.Unmount(d.mountpoint(bucket))
 		} else {
 			return volume.Response{Err: err.Error()}
