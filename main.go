@@ -10,14 +10,12 @@ import (
 )
 
 const (
-	socketAddress = "/run/docker/plugins/s3volume.sock"
+	socketAddress = "/run/docker/plugins/goofys.sock"
 )
 
 var (
-	defaultPath = filepath.Join(volume.DefaultDockerRootDirectory, "s3volume")
+	defaultPath = filepath.Join(volume.DefaultDockerRootDirectory, "goofys")
 	root        = flag.String("root", defaultPath, "Docker volumes root directory")
-	uid         = flag.String("uid", "500", "Default uid to own files")
-	gid         = flag.String("gid", "500", "Default gid to own files")
 )
 
 func main() {
