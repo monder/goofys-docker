@@ -1,3 +1,6 @@
+[![license](https://img.shields.io/github/license/monder/goofys-docker.svg?maxAge=2592000&style=flat-square)]()
+[![GitHub tag](https://img.shields.io/github/tag/monder/goofys-docker.svg?style=flat-square)]()
+
 goofys-docker is a docker [volume plugin] wrapper for S3
 
 ## Overview
